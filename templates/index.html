@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Industry Readiness - Know how ready you are{% endblock %}
+{% block content %}
+<section class="hero">
+  <span class="pill">Free &bull; Private &bull; Instant feedback</span>
+  <h1>How <span class="grad">industry-ready</span> are you?</h1>
+  <p class="lead">Upload your CV, add a few links, and get an Industry Readiness Score with clear gaps and a prioritised action plan.</p>
+  <div class="stats">
+    <div><b>5</b><span>dimensions scored</span></div>
+    <div><b>25+</b><span>transparent criteria</span></div>
+    <div><b>PDF</b><span>report to download</span></div>
+  </div>
+</section>
+
+<section class="card form-card" id="analyse">
+  {% if error %}
+  <div class="alert error" role="alert">
+    <strong>{{ error.message }}</strong>
+    {% if error.hint %}<span>{{ error.hint }}</span>{% endif %}
+  </div>
+  {% endif %}
+
+  <ol class="steps" aria-label="Progress">
+    <li class="active" data-step="1"><span>1</span> Upload CV</li>
+    <li data-step="2"><span>2</span> Profile &amp; links</li>
+    <li data-step="3"><span>3</span> Review &amp; go</li>
+  </ol>
+
+  <form id="analyse-form" method="post" action="{{ url_for('analyze') }}" enctype="multipart/form-data" novalidate>
+    <div class="panel active" data-panel="1">
+      <label class="dropzone" id="dropzone" for="cv">
+        <input type="file" id="cv" name="cv" accept=".pdf,.docx" hidden>
+        <div class="dz-icon">📄</div>
+        <p class="dz-title"><b>Drag &amp; drop your CV here</b> or click to browse</p>
+        <p class="dz-sub">PDF or DOCX &bull; up to 5 MB</p>
+        <p class="file-chip" id="file-chip" hidden></p>
+      </label>
+      <p class="field-error" id="err-file" hidden></p>
+
+      <div class="field">
+        <label for="role">Target role <em>*</em></label>
+        <div class="role-cards">
+          {% for key, label in ROLES.items() %}
+          <label class="role-card">
+            <input type="radio" name="role" value="{{ key }}" {% if (form.get('role') or 'web') == key %}checked{% endif %}>
+            <span>
+              <i>{{ '🌐' if key == 'web' else '📊' if key == 'data' else '💼' }}</i>
+              {{ label }}
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="actions"><button type="button" class="btn primary" data-next>Continue &rarr;</button></div>
+    </div>
+
+    <div class="panel" data-panel="2">
+      <p class="muted">All optional, but adding links makes your Portfolio and Deployment scores more accurate. Anything you skip is marked "not assessed" instead of counted as zero.</p>
+      <div class="grid2">
+        <div class="field"><label for="name">Your name</label>
+          <input id="name" name="name" placeholder="e.g. Aparna" value="{{ form.get('name', '') }}" maxlength="80"></div>
+        <div class="field"><label for="education">Education level</label>
+          <select id="education" name="education">
+            {% for o in ['', 'Diploma', 'Bachelor\'s (pursuing)', 'Bachelor\'s (completed)', 'Master\'s', 'Other'] %}
+            <option value="{{ o }}" {% if form.get('education') == o %}selected{% endif %}>{{ o or 'Select…' }}</option>
+            {% endfor %}
+          </select></div>
+        <div class="field"><label for="github">GitHub profile</label>
+          <input id="github" name="github" placeholder="github.com/username" value="{{ form.get('github', '') }}"></div>
+        <div class="field"><label for="portfolio">Portfolio website</label>
+          <input id="portfolio" name="portfolio" placeholder="https://yourname.dev" value="{{ form.get('portfolio', '') }}"></div>
+      </div>
+      <div class="field"><label for="live_urls">Deployed project links <small>(separate with spaces or commas, up to 5)</small></label>
+        <textarea id="live_urls" name="live_urls" rows="2" placeholder="https://myapp.onrender.com https://shop.vercel.app">{{ form.get('live_urls', '') }}</textarea></div>
+      <div class="actions"><button type="button" class="btn ghost" data-prev>&larr; Back</button>
+        <button type="button" class="btn primary" data-next>Continue &rarr;</button></div>
+    </div>
+
+    <div class="panel" data-panel="3">
+      <div class="review" id="review"></div>
+      <label class="consent">
+        <input type="checkbox" name="consent" id="consent" {% if form.get('consent') %}checked{% endif %}>
+        <span>I agree to my CV being processed to generate my score. The file is deleted right after text extraction; only the results are kept for 30 days and I can delete them anytime. Text may be sent to an AI service for feedback.</span>
+      </label>
+      <p class="field-error" id="err-consent" hidden>Please tick the consent box to continue.</p>
+      <div class="actions"><button type="button" class="btn ghost" data-prev>&larr; Back</button>
+        <button type="submit" class="btn primary glow" id="submit-btn">Analyse my CV ✨</button></div>
+    </div>
+  </form>
+</section>
+
+<div class="overlay" id="loading" hidden>
+  <div class="loader-card">
+    <div class="spinner"></div>
+    <h3>Analysing your CV…</h3>
+    <ul class="load-steps">
+      <li>Reading your document</li><li>Checking structure &amp; ATS fit</li>
+      <li>Verifying links &amp; GitHub</li><li>Calculating your score</li>
+    </ul>
+  </div>
+</div>
+
+<section class="features">
+  <div class="card f"><i>🎯</i><h3>Recruiter appeal</h3><p>ATS fit, clarity, skills relevance and measurable achievements.</p></div>
+  <div class="card f"><i>🏅</i><h3>Professional standards</h3><p>Formatting, language, contact details and documentation quality.</p></div>
+  <div class="card f"><i>🗂️</i><h3>Portfolio &amp; projects</h3><p>Depth of projects and public code on GitHub.</p></div>
+  <div class="card f"><i>🚀</i><h3>Internship readiness</h3><p>Core skills, practical experience and career focus.</p></div>
+  <div class="card f"><i>☁️</i><h3>Deployment maturity</h3><p>Live projects, Git practice, testing and cloud familiarity.</p></div>
+  <div class="card f"><i>📝</i><h3>Optional test</h3><p>20-question assessment that adds to your overall score.</p></div>
+</section>
+{% endblock %}

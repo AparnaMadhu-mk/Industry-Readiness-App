@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}How scoring works{% endblock %}
+{% block content %}
+<section class="hero small">
+  <h1>How your score is calculated</h1>
+  <p class="lead">Fully transparent: every dimension is built from weighted criteria, and every result shows its evidence.</p>
+</section>
+
+<section class="card prose">
+  <h2>1. Criteria &rarr; dimension score (0-100)</h2>
+  <p>Each dimension is a checklist of weighted criteria (for example, "ATS compatibility" is worth 25 of the 100 points in Recruiter Appeal). Rule-based checks are deterministic, so the same CV always gets the same rule score.</p>
+  <h2>2. Rules + AI review</h2>
+  <p>Rule-based checks contribute about <b>60%</b> of a dimension score and an AI review of clarity, relevance and impact adds about <b>40%</b>. If the AI service is unavailable, you still get the rule-based score and a visible notice.</p>
+  <h2>3. Dimensions &rarr; overall score</h2>
+  <div class="two-col">
+    <table class="crit"><thead><tr><th>Dimension</th><th>No test</th><th>With test</th></tr></thead><tbody>
+      {% for k, label in config.DIMENSION_LABELS.items() %}
+      <tr><td>{{ label }}</td><td>{{ weights_no.get(k, '-') }}{{ '%' if weights_no.get(k) }}</td><td>{{ weights_with.get(k, '-') }}{{ '%' if weights_with.get(k) }}</td></tr>
+      {% endfor %}</tbody></table>
+    <div><p>Overall = &Sigma; (weight &times; dimension score).</p>
+    <p>If something can't be assessed (e.g. no GitHub link), it is <b>excluded</b> and the remaining weights are rescaled &mdash; it is never counted as zero.</p></div>
+  </div>
+  <h2>4. Score bands</h2>
+  <div class="bands">
+    {% for lo, hi, label, color in bands %}<div style="border-color: {{ color }}"><b style="color: {{ color }}">{{ lo }}-{{ hi }}</b> {{ label }}</div>{% endfor %}
+  </div>
+  <h2>5. Gaps &amp; recommendations</h2>
+  <p>Any criterion below 60% of its points is a gap. Gaps are ranked by (dimension weight &times; points lost) and the top five become your prioritised recommendations.</p>
+  <h2>Fairness &amp; privacy</h2>
+  <p>We do not score name, gender, age, photo or institution prestige. Your CV file is processed in memory and never stored; results expire after 30 days and can be deleted anytime.</p>
+  <p class="muted">{{ DISCLAIMER }}</p>
+</section>
+{% endblock %}

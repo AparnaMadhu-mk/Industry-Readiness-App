@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Your Industry Readiness Score{% endblock %}
+{% block content %}
+<section class="results-head">
+  <div>
+    <span class="pill">{{ r._meta.candidate }} &bull; {{ ROLES.get(r._meta.role, r._meta.role) }} &bull; {{ r._meta.created_at }}</span>
+    <h1>Your Industry Readiness report</h1>
+  </div>
+  <div class="head-actions">
+    <a class="btn primary" href="{{ url_for('report_pdf', rid=rid) }}">⬇ Download PDF</a>
+    {% if not r.assessment %}<a class="btn ghost" href="{{ url_for('assessment_start', rid=rid) }}">📝 Take the test (+15%)</a>{% endif %}
+  </div>
+</section>
+
+{% if not r.ai_used %}
+<div class="alert info">AI feedback was unavailable for this run, so your score is based on our rule-based checks only. Results are still fully explained below.</div>
+{% endif %}
+
+<section class="score-grid">
+  <div class="card gauge-card">
+    <div class="gauge" style="--pct: {{ r.overall }}; --col: {{ r.band.color }}">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="g-bg" cx="100" cy="100" r="86"/>
+        <circle class="g-fg" cx="100" cy="100" r="86" stroke="{{ r.band.color }}" data-score="{{ r.overall }}"/>
+      </svg>
+      <div class="g-text"><b data-count="{{ r.overall }}">0</b><span>/ 100</span></div>
+    </div>
+    <h2 style="color: {{ r.band.color }}">{{ r.band.label }}</h2>
+    <p class="muted small">{{ DISCLAIMER }}</p>
+  </div>
+
+  <div class="card radar-card">
+    <h3>Score by dimension</h3>
+    <div id="radar" data-dims='{{ r.dimensions|tojson|forceescape }}'></div>
+  </div>
+</section>
+
+<section class="dim-bars card">
+  {% for key, d in r.dimensions.items() %}
+  <div class="bar-row">
+    <div class="bar-label">{{ d.icon }} {{ d.label }} <small>{% if r.weights.get(key) %}weight {{ r.weights[key]|round|int }}%{% endif %}</small></div>
+    {% if d.score is not none %}
+    <div class="bar"><i style="--w: {{ d.score }}%; background: {{ d.band.color }}"></i></div>
+    <div class="bar-val">{{ d.score|round|int }}</div>
+    {% else %}
+    <div class="bar na"><i></i></div><div class="bar-val na">n/a</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2 class="sec">Top recommendations</h2>
+  {% if r.recommendations %}
+  <div class="recs">
+    {% for rec in r.recommendations %}
+    <article class="card rec">
+      <span class="num">{{ rec.priority }}</span>
+      <div>
+        <h4>{{ rec.title }} <small>{{ rec.dimension }}</small></h4>
+        <p class="why"><b>What we found:</b> {{ rec.why }}</p>
+        <p class="fix"><b>How to fix it:</b> {{ rec.fix }}</p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card"><p>No major gaps found. Keep your CV and projects up to date. 🎉</p></div>
+  {% endif %}
+</section>
+
+<section class="two-col">
+  <div class="card">
+    <h3>💪 Strengths</h3>
+    {% if r.strengths %}<ul class="plain good">
+      {% for s in r.strengths[:6] %}<li><b>{{ s.criterion }}</b><small>{{ s.dimension_label }}</small></li>{% endfor %}
+    </ul>{% else %}<p class="muted">Strengths will appear as criteria reach 80%+.</p>{% endif %}
+    {% if r.ai_review and r.ai_review.strengths %}<hr><p class="muted small">AI review</p>
+    <ul class="plain good">{% for s in r.ai_review.strengths %}<li>{{ s }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <div class="card">
+    <h3>🔎 Gaps to close</h3>
+    {% if r.gaps %}<ul class="plain bad">
+      {% for g in r.gaps[:8] %}<li><b>{{ g.criterion }}</b><small>{{ g.dimension_label }} &bull; {{ (g.ratio*100)|round|int }}% of points</small></li>{% endfor %}
+    </ul>{% else %}<p class="muted">No criteria below 60%.</p>{% endif %}
+    {% if r.ai_review and r.ai_review.gaps %}<hr><p class="muted small">AI review</p>
+    <ul class="plain bad">{% for s in r.ai_review.gaps %}<li>{{ s }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+</section>
+
+<section>
+  <h2 class="sec">Detailed breakdown <small>(every score shows how it was calculated)</small></h2>
+  <div class="accordion">
+    {% for key, d in r.dimensions.items() %}
+    <details class="card acc" {% if loop.first %}open{% endif %}>
+      <summary>
+        <span>{{ d.icon }} {{ d.label }}</span>
+        <span class="chip" {% if d.band %}style="background: {{ d.band.color }}22; color: {{ d.band.color }}"{% endif %}>
+          {% if d.score is not none %}{{ d.score|round|int }}/100{% else %}Not assessed{% endif %}</span>
+      </summary>
+      {% if d.ai_score is not none and d.rule_score is not none %}
+      <p class="muted small">Rule-based {{ d.rule_score|round|int }} (60%) + AI review {{ d.ai_score }} (40%)</p>
+      {% endif %}
+      <table class="crit">
+        <thead><tr><th>Criterion</th><th>Points</th><th>Evidence &amp; fix</th></tr></thead>
+        <tbody>
+        {% for c in d.criteria %}
+          <tr class="{{ 'na' if not c.assessed else ('low' if c.earned / c.max < 0.6 else 'ok') }}">
+            <td>{{ c.name }}</td>
+            <td>{% if c.assessed %}<b>{{ c.earned|round|int }}</b>/{{ c.max }}{% else %}n/a{% endif %}</td>
+            <td><span>{{ c.evidence }}</span>
+              {% if c.assessed and c.earned / c.max < 0.8 %}<em>💡 {{ c.fix }}</em>{% endif %}
+              {% if not c.assessed %}<em>Excluded from your score &mdash; {{ c.fix }}</em>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="two-col">
+  <div class="card">
+    <h3>🤖 ATS check</h3>
+    <p class="muted small">{{ r.ats.word_count }} words &bull; about {{ r.ats.pages }} page(s)</p>
+    <p><b>Found:</b> {% for s in r.ats.found_sections %}<span class="tag ok">{{ s }}</span>{% else %}none{% endfor %}</p>
+    <p><b>Missing:</b> {% for s in r.ats.missing_sections %}<span class="tag miss">{{ s }}</span>{% else %}<span class="muted">none 🎉</span>{% endfor %}</p>
+    {% for w in r.ats.warnings %}<p class="warn">⚠ {{ w }}</p>{% endfor %}
+  </div>
+  <div class="card">
+    <h3>🔗 Link checks</h3>
+    {% set gh = r.links.github %}
+    <p>GitHub: {% if gh and gh.assessed %}<span class="tag ok">{{ gh.username }}</span> {{ gh.public_repos }} repos{% else %}<span class="tag miss">not assessed</span> <small class="muted">{{ gh.note if gh else '' }}</small>{% endif %}</p>
+    {% for l in r.links.live %}
+      <p><span class="tag {{ 'ok' if l.ok else 'miss' }}">{{ 'live' if l.ok else 'down' }}</span> <small>{{ l.url }}</small></p>
+    {% else %}<p class="muted small">No deployed-project links supplied.</p>{% endfor %}
+  </div>
+</section>
+
+<section class="card danger-zone">
+  <div><h3>Your data</h3><p class="muted small">Results expire on {{ r._meta.expires_at }}. Your CV file itself was never stored.</p></div>
+  <form method="post" action="{{ url_for('delete_page', rid=rid) }}" onsubmit="return confirm('Delete these results permanently?');">
+    <button class="btn danger">🗑 Delete my results</button>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/results.js') }}"></script>{% endblock %}

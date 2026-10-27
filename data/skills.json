@@ -1,0 +1,20 @@
+{
+  "web": {
+    "core": ["html", "css", "javascript", "typescript", "react", "node", "git", "rest", "api", "sql", "responsive", "flask", "django", "python", "angular", "vue", "mongodb", "express", "tailwind", "bootstrap", "docker", "testing"],
+    "label": "Web Developer"
+  },
+  "data": {
+    "core": ["python", "sql", "pandas", "numpy", "excel", "tableau", "power bi", "statistics", "machine learning", "matplotlib", "scikit-learn", "visualization", "data cleaning", "jupyter", "tensorflow", "git", "etl", "analysis", "regression", "r"],
+    "label": "Data Analyst / Data Scientist"
+  },
+  "general": {
+    "core": ["python", "java", "sql", "git", "linux", "problem solving", "communication", "teamwork", "api", "testing", "agile", "databases", "algorithms", "data structures", "cloud", "docker"],
+    "label": "General / Other IT Role"
+  },
+  "action_verbs": ["built", "developed", "designed", "implemented", "created", "led", "managed", "optimized", "optimised", "improved", "automated", "deployed", "launched", "analyzed", "analysed", "reduced", "increased", "delivered", "engineered", "architected", "integrated", "collaborated", "mentored", "migrated", "refactored", "tested", "organized", "organised", "achieved", "established", "streamlined", "trained", "researched", "wrote", "coordinated", "presented", "won", "secured"],
+  "weak_phrases": ["responsible for", "worked on", "duties included", "helped with", "assisted in", "tasked with", "was involved in"],
+  "deploy_keywords": ["aws", "azure", "gcp", "google cloud", "heroku", "vercel", "netlify", "render", "railway", "docker", "kubernetes", "ci/cd", "github actions", "jenkins", "deployed", "deployment", "hosting", "nginx", "linux", "terraform"],
+  "testing_keywords": ["pytest", "unittest", "jest", "junit", "selenium", "playwright", "cypress", "unit test", "testing", "test cases", "tdd", "ci/cd", "github actions", "jenkins"],
+  "teamwork_keywords": ["team", "collaborat", "group project", "pair programming", "agile", "scrum", "stakeholder", "volunteer", "led a", "mentor", "presented", "hackathon", "club", "communication"],
+  "experience_keywords": ["intern", "internship", "freelance", "hackathon", "open source", "open-source", "contributor", "trainee", "apprentice", "part-time", "volunteer", "research assistant", "work experience"]
+}

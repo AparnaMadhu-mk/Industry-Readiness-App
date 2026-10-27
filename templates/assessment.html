@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Industry Readiness Test{% endblock %}
+{% block content %}
+<section class="results-head">
+  <div><span class="pill">{{ role_label }} &bull; {{ questions|length }} questions</span>
+    <h1>Industry Readiness Test</h1>
+    <p class="muted">Multiple choice, no negative marking. Your result is added to your overall score at 15%.</p></div>
+  <div class="timer card" id="timer" data-minutes="{{ minutes }}">⏱ <b id="time-left">{{ minutes }}:00</b></div>
+</section>
+
+<form method="post" action="{{ url_for('assessment_submit', rid=rid) }}" id="test-form">
+  <input type="hidden" name="question_ids" value="{{ questions|map(attribute='id')|join(',') }}">
+  <div class="progress"><i id="progress-bar"></i></div>
+  <p class="muted small" id="answered">0 of {{ questions|length }} answered</p>
+
+  {% for q in questions %}
+  <fieldset class="card question">
+    <legend><span class="num">{{ loop.index }}</span> <small class="tag">{{ q.skill }}</small></legend>
+    <p class="q-text">{{ q.q }}</p>
+    <div class="opts">
+      {% for opt in q.options %}
+      <label class="opt"><input type="radio" name="q_{{ q.id }}" value="{{ loop.index0 }}"><span>{{ opt }}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% endfor %}
+  <div class="actions center"><button class="btn primary glow" type="submit">Submit test</button></div>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/test.js') }}"></script>{% endblock %}

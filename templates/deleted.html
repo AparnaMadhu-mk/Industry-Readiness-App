@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Results deleted{% endblock %}
+{% block content %}
+<section class="hero small">
+  <div class="big-emoji">✅</div>
+  <h1>Your results were deleted</h1>
+  <p class="lead">Nothing about your analysis is stored any more.</p>
+  <a class="btn primary" href="{{ url_for('index') }}">Analyse another CV</a>
+</section>
+{% endblock %}
